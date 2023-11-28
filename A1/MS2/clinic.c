@@ -189,7 +189,7 @@ void menuPatientEdit(struct Patient* patient)
 void displayAllPatients(const struct Patient patient[], int max, int fmt){
     int i;
     if (patient == NULL){
-        printf("*** No records found ***");
+        printf("*** No records found ***\n");
     }
     else {
         displayPatientTableHeader();
@@ -204,16 +204,95 @@ void displayAllPatients(const struct Patient patient[], int max, int fmt){
 
 
 // Search for a patient record based on patient number or phone number
-void searchPatientData(const struct Patient patient[], int max){}
+void searchPatientData(const struct Patient patient[], int max){
+    int selection;
+
+        printf("Search Options\n");
+        printf("==========================\n");
+        printf("1) By patient number\n");
+        printf("2) By phone number\n");
+        printf("..........................\n");
+        printf("0) Previous menu\n");
+        printf("..........................\n");
+        printf("Selection: ");
+        selection = inputIntRange(0, 2);
+        printf("\n");
+
+        switch (selection) {
+        case 0:
+            break;
+        case 1:
+            searchPatientByPatientNumber(&patient, max);
+            break;
+        case 2:
+            searchPatientByPhoneNumber(&patient, max);
+            break;
+        }
+}
 
 // Add a new patient record to the patient array
-void addPatient(struct Patient patient[], int max){}
+void addPatient(struct Patient patient[], int max){
+    int index = NULL, i;
+
+    for (i = 0; i < max; i++) {
+        if (patient[i].patientNumber == 0) {
+            index = i;
+        }
+    }
+    if (index == NULL) {
+        pritnf("ERROR: Patient listing is FULL!\n");
+    }
+    else {
+        patient[index].patientNumber = nextPatientNumber(&patient[index], max);
+        inputPatient(&patient[index]);
+        printf("*** New patient record added ***\n");
+    }
+}
 
 // Edit a patient record from the patient array
-void editPatient(struct Patient patient[], int max){}
+void editPatient(struct Patient patient[], int max){
+    int patientNumber, index;
+
+    printf("Enter the patient number: ");
+    patientNumber = inputIntPositive();
+
+    index = findPatientIndexByPatientNum(patientNumber, &patient, max);
+
+    if (index == -1) {
+        printf("ERROR: Patient record not found!\n");
+    }
+    else {
+        menuPatientEdit(&patient[index]);
+    }
+}
 
 // Remove a patient record from the patient array
-void removePatient(struct Patient patient[], int max){}
+void removePatient(struct Patient patient[], int max){
+    int patientNumber, index;
+    char options[2] = { 'y', 'n' }, selection;
+
+    printf("Enter the patient number: ");
+    patientNumber = inputIntPositive();
+
+    index = findPatientIndexByPatientNum(patientNumber, &patient, max);
+
+    if (index == -1) {
+        printf("ERROR: Patient record not found!\n");
+    }
+    else {
+        displayPatientData(&patient[index], FMT_FORM);
+        printf("Are you sure you want to remove this patient record? (y/n): ");
+        selection = inputCharOption(options);
+
+        if (selection == 'y') {
+            patient[index].patientNumber = 0;
+            printf("Patient record has been removed!\n");
+        }
+        else {
+            printf("Operation aborted.\n");
+        }
+    }
+}
 
 
 //////////////////////////////////////
