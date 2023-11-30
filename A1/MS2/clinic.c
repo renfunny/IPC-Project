@@ -194,10 +194,11 @@ void displayAllPatients(const struct Patient patient[], int max, int fmt){
     else {
         displayPatientTableHeader();
         for (i = 0; i < max; i++) {
-            if (patient[i].patientNumber > 0) {
+            if (patient[i].patientNumber != 0) {
                 displayPatientData(&patient[i], fmt);
             }
         }
+        printf("\n");
     }
 }
 
@@ -207,6 +208,7 @@ void displayAllPatients(const struct Patient patient[], int max, int fmt){
 void searchPatientData(const struct Patient patient[], int max){
     int selection;
 
+    do {
         printf("Search Options\n");
         printf("==========================\n");
         printf("1) By patient number\n");
@@ -222,30 +224,30 @@ void searchPatientData(const struct Patient patient[], int max){
         case 0:
             break;
         case 1:
-            searchPatientByPatientNumber(&patient, max);
+            searchPatientByPatientNumber(patient, max);
+            suspend();
             break;
         case 2:
-            searchPatientByPhoneNumber(&patient, max);
+            searchPatientByPhoneNumber(patient, max);
+            suspend();
             break;
         }
+    } while (selection);
 }
 
 // Add a new patient record to the patient array
 void addPatient(struct Patient patient[], int max){
-    int index = NULL, i;
+	int index;
 
-    for (i = 0; i < max; i++) {
-        if (patient[i].patientNumber == 0) {
-            index = i;
-        }
+	index = findPatientIndexByPatientNum(0, patient, max);
+
+	if (index == -1) {
+        printf("ERROR: Patient listing is FULL!\n\n");
     }
-    if (index == NULL) {
-        pritnf("ERROR: Patient listing is FULL!\n");
-    }
-    else {
-        patient[index].patientNumber = nextPatientNumber(&patient[index], max);
-        inputPatient(&patient[index]);
-        printf("*** New patient record added ***\n");
+	else {
+		patient[index].patientNumber = nextPatientNumber(patient, max);
+		inputPatient(&patient[index]);
+        printf("*** New patient record added ***\n\n");
     }
 }
 
@@ -255,8 +257,9 @@ void editPatient(struct Patient patient[], int max){
 
     printf("Enter the patient number: ");
     patientNumber = inputIntPositive();
+    printf("\n");
 
-    index = findPatientIndexByPatientNum(patientNumber, &patient, max);
+    index = findPatientIndexByPatientNum(patientNumber, patient, max);
 
     if (index == -1) {
         printf("ERROR: Patient record not found!\n");
@@ -273,8 +276,9 @@ void removePatient(struct Patient patient[], int max){
 
     printf("Enter the patient number: ");
     patientNumber = inputIntPositive();
+    printf("\n");
 
-    index = findPatientIndexByPatientNum(patientNumber, &patient, max);
+    index = findPatientIndexByPatientNum(patientNumber, patient, max);
 
     if (index == -1) {
         printf("ERROR: Patient record not found!\n");
@@ -300,16 +304,72 @@ void removePatient(struct Patient patient[], int max){
 //////////////////////////////////////
 
 // Search and display patient record by patient number (form)
-void searchPatientByPatientNumber(const struct Patient patient[], int max){}
+void searchPatientByPatientNumber(const struct Patient patient[], int max){
+    int patientNumber, index;
+    printf("Search by patient number: ");
+    patientNumber = inputIntPositive();
+    printf("\n");
+
+    index = findPatientIndexByPatientNum(patientNumber, patient, max);
+
+    if (index == -1) {
+        printf("*** No records found ***\n\n");
+    }
+    else {
+        displayPatientData(&patient[index], FMT_FORM);
+        printf("\n");
+    }
+
+}
 
 // Search and display patient records by phone number (tabular)
-void searchPatientByPhoneNumber(const struct Patient patient[], int max){}
+void searchPatientByPhoneNumber(const struct Patient patient[], int max){
+	int i, count = 0;
+	char phoneNumber[11];
+
+    printf("Search by phone number: ");
+    inputCString(phoneNumber, 10, 10);
+	printf("\n");
+
+    displayPatientTableHeader();
+	for (i = 0; i < max; i++) {
+		if (strcmp(patient[i].phone.number, phoneNumber) == 0) {
+			displayPatientData(&patient[i], FMT_TABLE);
+			count++;
+		}
+	}
+	if (count == 0) {
+		printf("\n*** No records found ***\n\n");
+	}
+	else {
+		printf("\n");
+	}
+
+}
 
 // Get the next highest patient number
-int nextPatientNumber(const struct Patient patient[], int max){}
+int nextPatientNumber(const struct Patient patient[], int max){
+	int i, highest = 0;
+
+	for (i = 0; i < max; i++) {
+		if (patient[i].patientNumber > highest) {
+			highest = patient[i].patientNumber;
+		}
+	}
+	return highest + 1;
+}
 
 // Find the patient array index by patient number (returns -1 if not found)
-int findPatientIndexByPatientNum(int patientNumber, const struct Patient patient[], int max){}
+int findPatientIndexByPatientNum(int patientNumber, const struct Patient patient[], int max){
+	int i, index = -1;
+
+	for (i = 0; i < max; i++) {
+		if (patient[i].patientNumber == patientNumber) {
+			index = i;
+		}
+	}
+	return index;
+}
 
 
 //////////////////////////////////////
@@ -317,7 +377,56 @@ int findPatientIndexByPatientNum(int patientNumber, const struct Patient patient
 //////////////////////////////////////
 
 // Get user input for a new patient record
-void inputPatient(struct Patient* patient){}
+void inputPatient(struct Patient* patient){
+    printf("Patient Data Input\n");
+    printf("------------------\n");
+    printf("Number: %05d\n", patient->patientNumber);
+	printf("Name  :");
+	inputCString(&patient->name, 1, NAME_LEN);
+    printf("\n");
+	inputPhoneData(&patient->phone);
+}
 
 // Get user input for phone contact information
-void inputPhoneData(struct Phone* phone){}
+void inputPhoneData(struct Phone* phone){
+    int selection;
+
+    printf("Phone Information\n");
+    printf("-----------------\n");
+    printf("How will the patient like to be contacted?\n");
+    printf("1. Cell\n");
+    printf("2. Home\n");
+    printf("3. Work\n");
+    printf("4. TBD\n");
+    printf("Selection: ");
+    selection = inputIntRange(1, 4);
+    printf("\n");
+
+    switch (selection) {
+        case 1:
+        *phone->description = "CELL";
+        printf("Contact: %s\n", phone->description);
+        printf("Number : ");
+        inputCString(&phone->number, 10, 10);
+        printf("\n");
+		break;
+		case 2:
+		*phone->description = "HOME";
+		printf("Contact: %s\n", phone->description);
+		printf("Number : ");
+		inputCString(&phone->number, 10, 10);
+        printf("\n");
+		break;
+		case 3:
+		*phone->description = "WORK";
+		printf("Contact: %s\n", phone->description);
+		printf("Number : ");
+		inputCString(&phone->number, 10, 10);
+        printf("\n");
+		break;
+		case 4:
+		*phone->description = "TBD";
+		break;
+	}
+
+}

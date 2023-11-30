@@ -41,8 +41,8 @@ piece of work is entirely of my own creation.
 // Data type: Phone
 struct Phone
 {
-    char description[PHONE_DESC_LEN];
-    char number[PHONE_LEN];
+	char description[PHONE_DESC_LEN + 1];
+	char number[PHONE_LEN + 1];
 };
 
 
@@ -50,7 +50,7 @@ struct Phone
 struct Patient
 {
     int patientNumber;
-    char name[NAME_LEN];
+    char name[NAME_LEN + 1];
     struct Phone phone;
 };
 

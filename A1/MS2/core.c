@@ -120,13 +120,16 @@ char inputCharOption(const char validChars[]) {
 }
 
 void inputCString(char* str, int minLen, int maxLen) {
-    int flag = 0;
-    size_t length;
+    int flag = 0, length;
     do {
         flag = 1;
         scanf("%[^\n]", str);
 
-        length = strlen(str);
+        length = 0;
+        while (str[length] != '\0') {
+            length++;
+        }
+
         clearInputBuffer();
 
         if (length < minLen) {
