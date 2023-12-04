@@ -14,6 +14,7 @@ piece of work is entirely of my own creation.
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <stdio.h>
+#include <string.h>
 
 // include the user library "core" so we can use those functions
 #include "core.h"
@@ -262,7 +263,7 @@ void editPatient(struct Patient patient[], int max){
     index = findPatientIndexByPatientNum(patientNumber, patient, max);
 
     if (index == -1) {
-        printf("ERROR: Patient record not found!\n");
+        printf("ERROR: Patient record not found!\n\n");
     }
     else {
         menuPatientEdit(&patient[index]);
@@ -281,19 +282,20 @@ void removePatient(struct Patient patient[], int max){
     index = findPatientIndexByPatientNum(patientNumber, patient, max);
 
     if (index == -1) {
-        printf("ERROR: Patient record not found!\n");
+        printf("ERROR: Patient record not found!\n\n");
     }
     else {
         displayPatientData(&patient[index], FMT_FORM);
+        printf("\n");
         printf("Are you sure you want to remove this patient record? (y/n): ");
         selection = inputCharOption(options);
 
         if (selection == 'y') {
             patient[index].patientNumber = 0;
-            printf("Patient record has been removed!\n");
+            printf("Patient record has been removed!\n\n");
         }
         else {
-            printf("Operation aborted.\n");
+            printf("Operation aborted.\n\n");
         }
     }
 }
@@ -366,6 +368,7 @@ int findPatientIndexByPatientNum(int patientNumber, const struct Patient patient
 	for (i = 0; i < max; i++) {
 		if (patient[i].patientNumber == patientNumber) {
 			index = i;
+            break;
 		}
 	}
 	return index;
@@ -381,8 +384,8 @@ void inputPatient(struct Patient* patient){
     printf("Patient Data Input\n");
     printf("------------------\n");
     printf("Number: %05d\n", patient->patientNumber);
-	printf("Name  :");
-	inputCString(&patient->name, 1, NAME_LEN);
+	printf("Name  : ");
+	inputCString(patient->name, 1, NAME_LEN);
     printf("\n");
 	inputPhoneData(&patient->phone);
 }
@@ -404,29 +407,29 @@ void inputPhoneData(struct Phone* phone){
 
     switch (selection) {
         case 1:
-        *phone->description = "CELL";
-        printf("Contact: %s\n", phone->description);
-        printf("Number : ");
-        inputCString(&phone->number, 10, 10);
-        printf("\n");
+            strcpy(phone->description, "CELL");
+            printf("Contact: %s\n", phone->description);
+            printf("Number : ");
+            inputCString(phone->number, 10, 10);
+            printf("\n");
 		break;
 		case 2:
-		*phone->description = "HOME";
-		printf("Contact: %s\n", phone->description);
-		printf("Number : ");
-		inputCString(&phone->number, 10, 10);
-        printf("\n");
+            strcpy(phone->description, "HOME");
+            printf("Contact: %s\n", phone->description);
+		    printf("Number : ");
+		    inputCString(phone->number, 10, 10);
+            printf("\n");
 		break;
 		case 3:
-		*phone->description = "WORK";
-		printf("Contact: %s\n", phone->description);
-		printf("Number : ");
-		inputCString(&phone->number, 10, 10);
-        printf("\n");
+            strcpy(phone->description, "WORK");
+            printf("Contact: %s\n", phone->description);
+		    printf("Number : ");
+		    inputCString(phone->number, 10, 10);
+            printf("\n");
 		break;
 		case 4:
-		*phone->description = "TBD";
-		break;
+            strcpy(phone->description, "TBD");
+            break;
 	}
 
 }
