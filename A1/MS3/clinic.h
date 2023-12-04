@@ -1,9 +1,9 @@
 /*/////////////////////////////////////////////////////////////////////////
                         Assignment 1 - Milestone 3
-Full Name  :
-Student ID#:
-Email      :
-Section    :
+Full Name  : Renato Cordova
+Student ID#: 153325238
+Email      : rcordova3@myseneca.ca
+Section    : NDD
 
 Authenticity Declaration:
 I declare this submission is the result of my own work and has not been
@@ -43,24 +43,45 @@ piece of work is entirely of my own creation.
 //////////////////////////////////////
 
 // Data type: Phone
-// (Copy your code from MS#2)
-
+struct Phone
+{
+    char description[PHONE_DESC_LEN + 1];
+    char number[PHONE_LEN + 1];
+};
 
 // Data type: Patient 
-// (Copy your code from MS#2)
-
+struct Patient
+{
+    int patientNumber;
+    char name[NAME_LEN + 1];
+    struct Phone phone;
+};
 // ------------------- MS#3 -------------------
 
 // Data type: Time
-// ToDo:
+struct Time
+{
+	int hour;
+	int min;
+};
 
 
 // Data type: Date
-// ToDo:
+struct Date
+{
+	int year;
+	int month;
+	int day;
+};
 
 
 // Data type: Appointment
-// ToDo:
+struct Appointment
+{
+	struct Patient* patient;
+	struct Time time;
+	struct Date date;
+};
 
 
 
@@ -132,19 +153,18 @@ void removePatient(struct Patient patient[], int max);
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 // View ALL scheduled appointments
-// Todo:
+void viewAllAppointments(const struct Appointment appoint[]);
 
 
 // View appointment schedule for the user input date
-// Todo:
-
+void viewAppointmentSchedule(const struct Appointment appoint[]);
 
 // Add an appointment record to the appointment array
-// Todo:
+void addAppointment(struct Appointment appoint[], int max, const struct Patient patient[], int patientCount);
 
 
 // Remove an appointment record from the appointment array
-// Todo:
+void removeAppointment(struct Appointment appoint[], int max, const struct Patient patient[], int patientCount);
 
 
 
