@@ -35,7 +35,11 @@ piece of work is entirely of my own creation.
 
 
 // MS#3 Additional macro's:
-// ToDo:
+#define MAX_DAY 28
+#define MIN_DAY 1
+#define MAX_MONTH 12
+#define MIN_MONTH 1
+#define MIN_YEAR 2023
 
 
 //////////////////////////////////////
@@ -78,9 +82,9 @@ struct Date
 // Data type: Appointment
 struct Appointment
 {
-	struct Patient* patient;
-	struct Time time;
+	int patientNumber;
 	struct Date date;
+	struct Time time;
 };
 
 
@@ -153,20 +157,18 @@ void removePatient(struct Patient patient[], int max);
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 // View ALL scheduled appointments
-void viewAllAppointments(const struct Appointment appoint[]);
-
+void viewAllAppointments(const struct ClinicData *data);
 
 // View appointment schedule for the user input date
-void viewAppointmentSchedule(const struct Appointment appoint[]);
+void viewAppointmentSchedule(const struct ClinicData *data);
 
 // Add an appointment record to the appointment array
-void addAppointment(struct Appointment appoint[], int max, const struct Patient patient[], int patientCount);
-
+void addAppointment(struct Appointment *appoint, int maxAppointments, const struct Patient *patient, int maxPatients);
 
 // Remove an appointment record from the appointment array
-void removeAppointment(struct Appointment appoint[], int max, const struct Patient patient[], int patientCount);
+void removeAppointment(struct Appointment* appoint, int maxAppointments,  struct Date* date);
 
-
+int compareDates(const struct Date date1, const struct Date date2);
 
 //////////////////////////////////////
 // UTILITY FUNCTIONS
@@ -189,6 +191,9 @@ int findPatientIndexByPatientNum(int patientNumber,
 //////////////////////////////////////
 // USER INPUT FUNCTIONS
 //////////////////////////////////////
+
+// Get user input for a new date
+void inputDate(struct Date* date);
 
 // Get user input for a new patient record
 void inputPatient(struct Patient* patient);

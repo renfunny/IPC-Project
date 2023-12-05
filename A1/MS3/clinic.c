@@ -388,16 +388,109 @@ void removePatient(struct Patient patient[], int max) {
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 // View ALL scheduled appointments
-void viewAllAppointments(const struct Appointment appoint[]){}
+void viewAllAppointments(const struct ClinicData* data){
+    int i, index;
+
+    displayScheduleTableHeader(NULL, 1);
+
+for (i = 0; i < data->maxAppointments; i++) {
+		if (data->appointments[i].date.year != 0) {
+            index = findPatientIndexByPatientNum(data->appointments[i].patientNumber, data->patients, data->maxPatient);
+			displayScheduleData(&data->patients[index], &data->appointments[i], 1);
+		}
+	}
+    	printf("\n");
+}
 
 // View appointment schedule for the user input date
-void viewAppointmentSchedule(const struct Appointment appoint[]) {}
+void viewAppointmentSchedule(const struct ClinicData* data){
+    struct Date date;
+    int i, index;
+
+    inputDate(&date);
+    printf("\n");
+
+    displayScheduleTableHeader(&date, 0);
+    for (i = 0; i < data->maxAppointments; i++) {
+        if (compareDates(data->appointments[i].date, date) == 0) {
+			index = findPatientIndexByPatientNum(data->appointments[i].patientNumber, data->patients, data->maxPatient);
+			displayScheduleData(&data->patients[index], &data->appointments[i], 0);
+		}
+    }
+}
+
+int compareDates(const struct Date date1, const struct Date date2) {
+    int result = 0;
+
+    if (date1.year != date2.year) {
+        result = date1.year < date2.year ? -1 : 1;
+    }
+    if (date1.month != date2.month) {
+        result = date1.month < date2.month ? -1 : 1;
+    }
+    if (date1.day != date2.day) {
+        result = date1.day < date2.day ? -1 : 1;
+    }
+
+    return result;
+}
 
 // Add an appointment record to the appointment array
-void addAppointment(struct Appointment appoint[], int max, const struct Patient patient[], int patientCount){}
+void addAppointment(struct Appointment* appoint, int maxAppointments, const struct Patient* patient, int maxPatients) {
+    struct Date date;
+    struct Time time;
+    int patientNumber, i, index, flag1 = 0, dateInput = 0;
+
+    printf("Patient Number: ");
+    patientNumber = inputIntPositive();
+
+    index = findPatientIndexByPatientNum(patientNumber, patient, maxPatients);
+
+    if (index == -1) {
+        printf("ERROR: Patient record not found!\n\n");
+    }
+    else {
+        do {
+            flag1 = 1;
+            inputDate(&date);
+            inputTime(&time);
+
+            for (i = 0; i < maxAppointments; i++) {
+                if (appoint[i].date.year == date.year && appoint[i].date.month == date.month && appoint[i].date.day == date.day) {
+                    if (appoint[i].time.hour == time.hour && appoint[i].time.min == time.min) {
+                        flag1 = 0;
+                        break;
+                    }
+                }
+            }
+
+            if (!flag1) {
+                printf("ERROR: Appointment timeslot is not avaliable!\n\n");
+            }
+            else {
+                for (i = 0; i < maxAppointments; i++) {
+                    if (appoint[i].date.year == 0) {
+                        appoint[i].date.year = date.year;
+                        appoint[i].date.month = date.month;
+                        appoint[i].date.day = date.day;
+                        appoint[i].time.hour = time.hour;
+                        appoint[i].time.min = time.min;
+                        appoint[i].patientNumber = patientNumber;
+                        printf("*** New appointment booked! ***\n\n");
+                        dateInput = 1;
+                        break;
+                    }
+                }
+                if (!dateInput) {
+                    printf("ERROR: Appointment listing is FULL!\n\n");
+                }
+            }
+        } while (!flag1);
+    }
+}
 
 // Remove an appointment record from the appointment array
-void removeAppointment(struct Appointment appoint[], int max, const struct Patient patient[], int patientCount){}
+void removeAppointment(struct Appointment* appoint, int maxAppointments, struct Date* date) {}
 
 //////////////////////////////////////
 // UTILITY FUNCTIONS
@@ -532,17 +625,94 @@ void inputPhoneData(struct Phone* phone) {
 
 }
 
+// Input date 
+void inputDate(struct Date* date) {
+    printf("Year        : ");
+    date->year = inputInt();
+    printf("Month (%d-%d): ", MIN_MONTH, MAX_MONTH);
+    date->month = inputIntRange(MIN_MONTH, MAX_MONTH);
+
+    if (date->month == 2) {
+        if (date->year % 4 == 0) {
+            printf("Day (%d-%d)  : ", MIN_DAY, MAX_DAY_FEB_LEAP);
+            date->day = inputIntRange(MIN_DAY, MAX_DAY_FEB_LEAP);
+        } else {
+            printf("Day (%d-%d)  : ", MIN_DAY, MAX_DAY_FEB);
+            date->day = inputIntRange(MIN_DAY, MAX_DAY_FEB);
+        }
+    } else {
+        printf("Day (%d-%d)  : ", MIN_DAY, MAX_DAY);
+        date->day = inputIntRange(MIN_DAY, MAX_DAY);
+    }
+}
+
+// Input time
+void inputTime(struct Time* time) {
+    int flag = 0;
+
+    do {
+        flag = 1;
+        printf("Hour (0-23)  : ");
+        time->hour = inputIntRange(0, 23);
+        printf("Minute (0-59): ");
+        time->min = inputIntRange(0, 59);
+
+        if(time->hour < APPOINTMENT_START || time->hour > APPOINTMENT_END || time->min % APPOINTMENT_INTERVAL != 0) {
+			printf("ERROR: Time must be between %d:00 and %d:00 in %d minute intervals.", APPOINTMENT_START, APPOINTMENT_END, APPOINTMENT_INTERVAL);
+			flag = 0;
+		}
+
+    } while (!flag);
+}
+
 
 //////////////////////////////////////
 // FILE FUNCTIONS
 //////////////////////////////////////
 
 // Import patient data from file into a Patient array (returns # of records read)
-int importPatients(const char* datafile, struct Patient patients[], int max){
-    return 0;
+int importPatients(const char* datafile, struct Patient patients[], int max) {
+    int count = 0;
+    FILE* fp = fopen(datafile, "r");
+    if (fp == NULL) {
+        printf("ERROR: Unable to open file %s\n", datafile);
+        return 0;
+    } else {
+
+        while (count < max && fscanf(fp, "%d|%[^|]|%[^|]|%[^\n]", 
+            &patients[count].patientNumber, 
+            patients[count].name, 
+            &patients[count].phone.description, 
+            patients[count].phone.number) >= 3) {
+            count++;
+        }
+        fclose(fp);
+
+    }
+    return count;
 }
 
 // Import appointment data from file into an Appointment array (returns # of records read)
 int importAppointments(const char* datafile, struct Appointment appoints[], int max) {
-    return 0;
+    int count = 0;
+    FILE* fp = fopen(datafile, "r");
+
+    if (fp == NULL) {
+		printf("ERROR: Unable to open file %s\n", datafile);
+		return 0;
+	} else {
+
+		while (count < max && fscanf(fp, "%d,%d,%d,%d,%d,%d\n", 
+            &appoints[count].patientNumber,
+			&appoints[count].date.year, 
+			&appoints[count].date.month, 
+			&appoints[count].date.day, 
+			&appoints[count].time.hour, 
+			&appoints[count].time.min) == 6) {
+			count++;
+		}
+		fclose(fp);
+
+	}
+return count;
 }
