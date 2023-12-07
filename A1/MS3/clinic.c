@@ -439,7 +439,7 @@ int compareDates(const struct Date date1, const struct Date date2) {
 void addAppointment(struct Appointment* appoint, int maxAppointments, const struct Patient* patient, int maxPatients) {
     struct Date date;
     struct Time time;
-    int patientNumber, i, index, flag1 = 0, dateInput = 0;
+    int patientNumber, i, index, flag = 0, dateInput = 0;
 
     printf("Patient Number: ");
     patientNumber = inputIntPositive();
@@ -451,20 +451,20 @@ void addAppointment(struct Appointment* appoint, int maxAppointments, const stru
     }
     else {
         do {
-            flag1 = 1;
+            flag = 1;
             inputDate(&date);
             inputTime(&time);
 
             for (i = 0; i < maxAppointments; i++) {
                 if (appoint[i].date.year == date.year && appoint[i].date.month == date.month && appoint[i].date.day == date.day) {
                     if (appoint[i].time.hour == time.hour && appoint[i].time.min == time.min) {
-                        flag1 = 0;
+                        flag = 0;
                         break;
                     }
                 }
             }
 
-            if (!flag1) {
+            if (!flag) {
                 printf("ERROR: Appointment timeslot is not avaliable!\n\n");
             }
             else {
@@ -485,12 +485,46 @@ void addAppointment(struct Appointment* appoint, int maxAppointments, const stru
                     printf("ERROR: Appointment listing is FULL!\n\n");
                 }
             }
-        } while (!flag1);
+        } while (!flag);
     }
 }
 
 // Remove an appointment record from the appointment array
-void removeAppointment(struct Appointment* appoint, int maxAppointments, struct Date* date) {}
+void removeAppointment(struct Appointment* appoint, int maxAppointments, const struct Patient* patient, int maxPatients) {
+    char selection;
+    int patientNumber, i, index, flag = 0;
+    struct Date dateInput;
+
+    printf("Patient Number: ");
+    patientNumber = inputIntPositive();
+
+    index = findPatientIndexByPatientNum(patientNumber, patient, maxPatients);
+
+    if (index == -1) {
+        printf("ERROR: Patient record not found!\n\n");
+    }
+    else {
+        inputDate(&dateInput);
+        printf("\n");
+
+        for (i = 0; i < maxAppointments; i++) {
+            if(appoint[i].date.year == dateInput.year && appoint[i].date.month == dateInput.month && appoint[i].date.day == dateInput.day) {
+                displayPatientData(&patient[index], FMT_FORM);
+                printf("Are you sure you want to remove this appointment? (y,n): ");
+                selection = inputCharOption("yn");
+                if (selection == 'y') {
+                    appoint[i].date.year = 0;
+                    printf("\n");
+                    printf("Appointment record has been removed!\n\n");
+                }
+                else {
+                    printf("Operation aborted.\n\n");
+                }
+                break;
+			}
+        }
+    }
+}
 
 //////////////////////////////////////
 // UTILITY FUNCTIONS
@@ -633,7 +667,7 @@ void inputDate(struct Date* date) {
     date->month = inputIntRange(MIN_MONTH, MAX_MONTH);
 
     if (date->month == 2) {
-        if (date->year % 4 == 0) {
+        if ((date->year % 4 == 0 && date->year % 100 != 0) || (date->year % 400 == 0)) {
             printf("Day (%d-%d)  : ", MIN_DAY, MAX_DAY_FEB_LEAP);
             date->day = inputIntRange(MIN_DAY, MAX_DAY_FEB_LEAP);
         } else {
@@ -657,8 +691,8 @@ void inputTime(struct Time* time) {
         printf("Minute (0-59): ");
         time->min = inputIntRange(0, 59);
 
-        if(time->hour < APPOINTMENT_START || time->hour > APPOINTMENT_END || time->min % APPOINTMENT_INTERVAL != 0) {
-			printf("ERROR: Time must be between %d:00 and %d:00 in %d minute intervals.", APPOINTMENT_START, APPOINTMENT_END, APPOINTMENT_INTERVAL);
+        if(((time->hour * 60) + time->min) < (APPOINTMENT_START * 60) || (((time->hour * 60) + time->min) > (APPOINTMENT_END * 60)) || time->min % APPOINTMENT_INTERVAL != 0) {
+			printf("ERROR: Time must be between %d:00 and %d:00 in %d minute intervals.\n\n", APPOINTMENT_START, APPOINTMENT_END, APPOINTMENT_INTERVAL);
 			flag = 0;
 		}
 

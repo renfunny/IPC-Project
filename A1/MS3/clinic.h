@@ -35,11 +35,16 @@ piece of work is entirely of my own creation.
 
 
 // MS#3 Additional macro's:
-#define MAX_DAY 28
+#define MAX_DAY 31
+#define MAX_DAY_FEB 28
+#define MAX_DAY_FEB_LEAP 29
 #define MIN_DAY 1
 #define MAX_MONTH 12
 #define MIN_MONTH 1
 #define MIN_YEAR 2023
+#define APPOINTMENT_START 10
+#define APPOINTMENT_END 14
+#define APPOINTMENT_INTERVAL 30
 
 
 //////////////////////////////////////
@@ -166,7 +171,7 @@ void viewAppointmentSchedule(const struct ClinicData *data);
 void addAppointment(struct Appointment *appoint, int maxAppointments, const struct Patient *patient, int maxPatients);
 
 // Remove an appointment record from the appointment array
-void removeAppointment(struct Appointment* appoint, int maxAppointments,  struct Date* date);
+void removeAppointment(struct Appointment* appoint, int maxAppointments, const struct Patient* patient, int maxPatients);
 
 int compareDates(const struct Date date1, const struct Date date2);
 
@@ -194,6 +199,9 @@ int findPatientIndexByPatientNum(int patientNumber,
 
 // Get user input for a new date
 void inputDate(struct Date* date);
+
+// Get user input for a new time
+void inputTime(struct Time* time);
 
 // Get user input for a new patient record
 void inputPatient(struct Patient* patient);
